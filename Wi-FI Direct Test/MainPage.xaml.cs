@@ -127,7 +127,7 @@ namespace Wi_FI_Direct_Test
                           TextBlock_ConnectedState.Text = "连接到设备" + deviceId;
                       });
                 EndpointPairs = wfdDevice.GetConnectionEndpointPairs();
-                EstablishSocketFromConnector(EndpointPairs[0].LocalHostName, "50001");
+                EstablishSocketFromConnector(EndpointPairs[0].RemoteHostName, "50001");
             }
             catch (Exception exp)
             {
@@ -150,8 +150,8 @@ namespace Wi_FI_Direct_Test
 
             StreamSocketListener listener = new StreamSocketListener();
             listener.ConnectionReceived += OnConnectionReceived;
-            await listener.BindEndpointAsync(EndpointPairs[0].LocalHostName, port);
-            Invoke(() => { TextBlock_ConnectedState.Text = "成功建立接口"; });
+            await listener.BindEndpointAsync(hostName, port);
+            Invoke(() => { TextBlock_ConnectedState.Text = "成功与设备"+ EndpointPairs[0].LocalHostName.ToString()+"建立接口"; });
         }
 
         /// <summary>
@@ -165,7 +165,7 @@ namespace Wi_FI_Direct_Test
             await _socket.ConnectAsync(hostName, port);
         }
 
-        async void OnConnectionReceived(StreamSocketListener listener, StreamSocketListenerConnectionReceivedEventArgs args)
+        void OnConnectionReceived(StreamSocketListener listener, StreamSocketListenerConnectionReceivedEventArgs args)
         {
             // Stop advertising/listening so that we're only serving one client
             //_provider.StopAdvertising();
