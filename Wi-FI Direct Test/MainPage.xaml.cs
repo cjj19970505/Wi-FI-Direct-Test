@@ -12,13 +12,14 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
-
 using Windows.Devices.WiFiDirect;
 using Windows.Devices.Enumeration;
 using Windows.Networking.Sockets;
 using Windows.Storage.Streams;
 using Windows.UI.Popups;
 using Windows.Networking;
+using System.Diagnostics;
+using Windows.UI.Core;
 
 // https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x804 上介绍了“空白页”项模板
 
@@ -46,11 +47,26 @@ namespace Wi_FI_Direct_Test
 
             publisher = new WiFiDirectAdvertisementPublisher();
             listener = new WiFiDirectConnectionListener();
+            publisher.StatusChanged += OnPublisherStatusChanged;
             publisher.Advertisement.ListenStateDiscoverability = WiFiDirectAdvertisementListenStateDiscoverability.Intensive;
             listener.ConnectionRequested += OnConnectionRequested;
             publisher.Start();
-            TextBlock_ConnectedState.Text = "开始广播……";
+            //TextBlock_ConnectedState.Text = "开始广播……";
         }
+
+        private async void OnPublisherStatusChanged(WiFiDirectAdvertisementPublisher sender, WiFiDirectAdvertisementPublisherStatusChangedEventArgs args)
+        {
+            if(args.Status == WiFiDirectAdvertisementPublisherStatus.Aborted)
+            {
+                Debug.WriteLine("因错误终止广播");
+                publisher.Start();
+            }
+            else if(args.Status == WiFiDirectAdvertisementPublisherStatus.Started)
+            {
+                await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => { TextBlock_ConnectedState.Text = "开始广播……"; });
+            }
+        }
+
         IReadOnlyList<Windows.Networking.EndpointPair> EndpointPairs;
         /// <summary>
         /// 广播者接收到请求连接消息后的操作
@@ -65,8 +81,9 @@ namespace Wi_FI_Direct_Test
                 WiFiDirectDevice wfdDevice = await WiFiDirectDevice.FromIdAsync(ConnectionRequest.DeviceInformation.Id);
                 //与之连接过的列表
                 EndpointPairs = wfdDevice.GetConnectionEndpointPairs();
-                EstablishSocketFromAdvertiser(EndpointPairs[0].LocalHostName, "50001");
-                Invoke(() => { TextBlock_ConnectedState.Text = "连接到" + EndpointPairs[0].LocalHostName.ToString(); });
+                //StartUDPServer("50001");
+                //EstablishSocketFromAdvertiser(EndpointPairs[0].LocalHostName, "50001");
+                //Invoke(() => { TextBlock_ConnectedState.Text = "连接到" + EndpointPairs[0].LocalHostName.ToString(); });
             }
             catch (Exception exp)
             {
@@ -204,6 +221,24 @@ namespace Wi_FI_Direct_Test
         {
             DataTransport data = new DataTransport(_socket);
             data.ReceiveData(4);
+        }
+
+        private async void StartUDPServer(string port)
+        {
+            var serverDatagramSocket = new DatagramSocket();
+            serverDatagramSocket.MessageReceived += ServerDatagramSocket_MessageReceived;
+            await serverDatagramSocket.BindServiceNameAsync(port);
+        }
+
+        private void ServerDatagramSocket_MessageReceived(DatagramSocket sender, DatagramSocketMessageReceivedEventArgs args)
+        {
+            using (var dataReader = args.GetDataReader())
+            {
+                while (true)
+                {
+                    Debug.WriteLine(dataReader.ReadInt32());
+                }
+            }
         }
     }
 }
