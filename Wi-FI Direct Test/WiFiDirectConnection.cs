@@ -10,6 +10,7 @@ using Windows.Storage.Streams;
 using Windows.UI.Popups;
 using System.Net;
 using System.Net.Sockets;
+using System.Diagnostics;
 
 namespace Wi_FI_Direct_Test
 {
@@ -51,8 +52,13 @@ namespace Wi_FI_Direct_Test
 
         public async Task SendAsync(byte[] message)
         {
-            DataTransport data = new DataTransport(_socket);
-            await data.SendData(10);
+            
+        }
+
+        public async Task ReceiveAsync(byte[] message)
+        {
+            onReceiveMessage(this, message);
+            var packMessageBuffer = new Queue<MessagePack>();
         }
 
         public void StartServer()
@@ -90,5 +96,32 @@ namespace Wi_FI_Direct_Test
             _ConnectionEstablishState = ConnectionEstablishState.Succeeded;
             OnConnectionEstalblishResult?.Invoke(this, _ConnectionEstablishState);
         }
-    }
+
+        private void StartUDP(int port, int size)
+        {
+            IPEndPoint ipep = new IPEndPoint(IPAddress.Any, port);
+            Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            socket.Bind(ipep);
+            byte[] recvBytes;
+            EndPoint sender = new IPEndPoint(IPAddress.Any, 0);
+            bool udpListening = true;
+            while (udpListening)
+            {
+                recvBytes = new byte[size];
+                int recv = socket.ReceiveFrom(recvBytes, ref sender);
+                string msg = Encoding.ASCII.GetString(recvBytes, 0, recv);
+                string printMsg;
+                if (sender is IPEndPoint)
+                {
+                    IPEndPoint ipepSender = sender as IPEndPoint;
+                    printMsg = ("(From: " + ipepSender.ToString() + ")");
+                }
+                else
+                {
+                    printMsg = ("(From: UNKNOWN)");
+                }
+                printMsg += msg;
+                Debug.WriteLine(printMsg);
+            }
+        }
 }
