@@ -1,0 +1,24 @@
+﻿<Page
+    x:Class="Wi_FI_Direct_Test.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Wi_FI_Direct_Test"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Grid>
+        <ListView x:Name="ListView_IPAdresses" HorizontalAlignment="Left" Height="362" Margin="772,128,0,0" VerticalAlignment="Top" Width="291" Background="{ThemeResource SystemControlForegroundChromeMediumBrush}" BorderBrush="Black"/>
+        <Button x:Name="Button_StartAdvertising" Content="开始广播" HorizontalAlignment="Left" Margin="163,143,0,0" VerticalAlignment="Top" Click="Button_StartAdvertising_Click"/>
+        <Button x:Name="Button_ShowIPAdresses" Content="开始监听" HorizontalAlignment="Left" Margin="163,217,0,0" VerticalAlignment="Top" Click="Button_ShowIPAdresses_Click"/>
+        <Button x:Name="Button_Connect" Content="连接" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="163,292,0,0" Click="Button_Click"/>
+        <TextBox x:Name="TextBox_Port" HorizontalAlignment="Left" Text="端口" VerticalAlignment="Top" Margin="163,360,0,0"/>
+        <TextBlock x:Name="TextBlock_ConnectedState" HorizontalAlignment="Left" Margin="163,422,0,0" Text="连接状态" TextWrapping="Wrap" VerticalAlignment="Top"/>
+        <TextBox x:Name="TextBox_Messages" HorizontalAlignment="Left" Margin="163,458,0,0" Text="消息" VerticalAlignment="Top"/>
+        <TextBox x:Name="TextBox_SelectedIP" HorizontalAlignment="Left" Margin="163,514,0,0" Text="要连接的ID" VerticalAlignment="Top" Width="237"/>
+        <Button x:Name="Button_StopAdvertising" Content="停止广播" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="163,86,0,0" Click="Button_StopAdvertising_Click"/>
+        <Button x:Name="Send_Button" Content="发送" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="245,292,0,0" Click="Send_Button_Click"/>
+        <Button x:Name="Button_Receive" Content="开始接受" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="319,292,0,0" Click="Button_Receive_Click"/>
+    </Grid>
+</Page>
