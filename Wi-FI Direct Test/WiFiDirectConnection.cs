@@ -55,12 +55,41 @@ namespace Wi_FI_Direct_Test
             
         }
 
+        IPEndPoint ipepSender;
         public async Task ReceiveAsync(byte[] message)
         {
+            int recv = socket.ReceiveFrom(message, ref sender);
             onReceiveMessage(this, message);
-            var packMessageBuffer = new Queue<MessagePack>();
+            string msg = Encoding.ASCII.GetString(message, 0, recv);
+            try
+            {
+                if (sender is IPEndPoint)
+                {
+                    ipepSender = sender as IPEndPoint;
+                }
+                else
+                {
+                    throw new Exception("Unknow sender");
+                }
+            }
+            catch(Exception exp)
+            {
+                Debug.WriteLine(exp.Message);
+            }
         }
 
+        int port = 0;
+        int Port
+        {
+            get
+            {
+                return port;
+            }
+            set
+            {
+                port = value;
+            }
+        }
         public void StartServer()
         {
             publisher = new WiFiDirectAdvertisementPublisher();
@@ -70,12 +99,12 @@ namespace Wi_FI_Direct_Test
             _ConnectionEstablishState = ConnectionEstablishState.Connecting;
             OnConnectionEstalblishResult(this, _ConnectionEstablishState);
             publisher.Start();
+            StartUDP(50001);
             //TextBlock_ConnectedState.Text = "开始广播……";
         }
 
         WiFiDirectAdvertisementPublisher publisher;
         WiFiDirectConnectionListener listener;
-        StreamSocket _socket;
         IReadOnlyList<Windows.Networking.EndpointPair> EndpointPairs;
 
         /// <summary>
@@ -97,31 +126,23 @@ namespace Wi_FI_Direct_Test
             OnConnectionEstalblishResult?.Invoke(this, _ConnectionEstablishState);
         }
 
-        private void StartUDP(int port, int size)
+        Socket socket;
+        EndPoint sender;
+        private async void StartUDP(int port)
         {
             IPEndPoint ipep = new IPEndPoint(IPAddress.Any, port);
-            Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            socket.Bind(ipep);
-            byte[] recvBytes;
-            EndPoint sender = new IPEndPoint(IPAddress.Any, 0);
-            bool udpListening = true;
-            while (udpListening)
+            socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            try
             {
-                recvBytes = new byte[size];
-                int recv = socket.ReceiveFrom(recvBytes, ref sender);
-                string msg = Encoding.ASCII.GetString(recvBytes, 0, recv);
-                string printMsg;
-                if (sender is IPEndPoint)
+                socket.Bind(ipep);
+                if(socket == null)
                 {
-                    IPEndPoint ipepSender = sender as IPEndPoint;
-                    printMsg = ("(From: " + ipepSender.ToString() + ")");
+                    throw new Exception("未能成功建立套接字！");
                 }
-                else
-                {
-                    printMsg = ("(From: UNKNOWN)");
-                }
-                printMsg += msg;
-                Debug.WriteLine(printMsg);
+            }
+            catch(Exception exp)
+            {
+                Debug.WriteLine(exp.Message);
             }
         }
 }
