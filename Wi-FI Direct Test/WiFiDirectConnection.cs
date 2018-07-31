@@ -56,26 +56,36 @@ namespace Wi_FI_Direct_Test
         }
 
         IPEndPoint ipepSender;
-        public async Task ReceiveAsync(byte[] message)
+        private Task _ReceiveAsync()
         {
-            int recv = socket.ReceiveFrom(message, ref sender);
-            onReceiveMessage(this, message);
-            string msg = Encoding.ASCII.GetString(message, 0, recv);
-            try
+            return Task.Run(() =>
             {
-                if (sender is IPEndPoint)
+                while (true)
                 {
-                    ipepSender = sender as IPEndPoint;
+                    byte[] message = new Byte[1024];
+                    int recv = socket.ReceiveFrom(message, ref sender);
+
+                    string msg = Encoding.ASCII.GetString(message, 0, recv);
+                    onReceiveMessage(this, message);
+                    try
+                    {
+                        if (sender is IPEndPoint)
+                        {
+                            ipepSender = sender as IPEndPoint;
+                        }
+                        else
+                        {
+                            throw new Exception("Unknow sender");
+                        }
+                    }
+                    catch (Exception exp)
+                    {
+                        Debug.WriteLine(exp.Message);
+                    }
                 }
-                else
-                {
-                    throw new Exception("Unknow sender");
-                }
-            }
-            catch(Exception exp)
-            {
-                Debug.WriteLine(exp.Message);
-            }
+            });
+            
+
         }
 
         int port = 0;
